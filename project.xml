@@ -22,8 +22,8 @@
     <!-- a unique name for this project -->
     <name>Apache AXIOM</name>
     <id>axiom</id>
-    <groupId>org.apache.ws.commons.axiom</groupId>
-    <package>org.apache.commons</package>
+    <groupId>org.apache.axiom</groupId>
+    <package>org.apache.axiom</package>
     <currentVersion>${axiom.version}</currentVersion>
     <!-- details about the organization that 'owns' the project -->
     <organization>
@@ -342,6 +342,11 @@
                 <module>true</module>
             </properties>
         </dependency>
+	 <dependency>
+	 	<groupId>junit</groupId>
+		<artifactId>junit</artifactId>
+		<version>3.8.2</version>
+	</dependency>
     </dependencies>
 
 </project>
