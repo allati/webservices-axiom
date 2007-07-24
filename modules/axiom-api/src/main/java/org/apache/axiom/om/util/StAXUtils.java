@@ -21,6 +21,7 @@ package org.apache.axiom.om.util;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.axiom.om.OMConstants;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
@@ -125,6 +126,7 @@ public class StAXUtils {
                                     try {
                                         currentThread.setContextClassLoader(StAXUtils.class.getClassLoader());
                                         factory = XMLOutputFactory.newInstance();
+                                        factory.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, Boolean.FALSE);
                                     }
                                     finally {
                                         currentThread.setContextClassLoader(savedClassLoader);
@@ -136,7 +138,9 @@ public class StAXUtils {
             },
             new ObjectCreator() {
                 public Object newObject() {
-                    return XMLOutputFactory.newInstance();
+                    XMLOutputFactory factory = XMLOutputFactory.newInstance();
+                    factory.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, Boolean.FALSE);
+                    return factory;
                 }
             }
     });
@@ -228,7 +232,7 @@ public class StAXUtils {
             throws XMLStreamException {
         XMLOutputFactory outputFactory = getXMLOutputFactory();
         try {
-            XMLStreamWriter writer = outputFactory.createXMLStreamWriter(out);
+            XMLStreamWriter writer = outputFactory.createXMLStreamWriter(out, OMConstants.DEFAULT_CHAR_SET_ENCODING);
             if (isDebugEnabled) {
                 log.debug("XMLStreamWriter is " + writer.getClass().getName());
             }

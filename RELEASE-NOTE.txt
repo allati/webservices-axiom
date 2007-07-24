@@ -39,9 +39,14 @@ What's New in This Release
 
 This release contains fixes for following issues.
 
+https://issues.apache.org/jira/browse/WSCOMMONS-175
 https://issues.apache.org/jira/browse/WSCOMMONS-211
 https://issues.apache.org/jira/browse/WSCOMMONS-202
 https://issues.apache.org/jira/browse/WSCOMMONS-201
 https://issues.apache.org/jira/browse/WSCOMMONS-198
+https://issues.apache.org/jira/browse/WSCOMMONS-213
+https://issues.apache.org/jira/browse/WSCOMMONS-216
+https://issues.apache.org/jira/browse/WSCOMMONS-221
+
 
 - The Apache Axiom Team.

@@ -23,6 +23,7 @@ import org.apache.axiom.om.OMAttribute;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.OMNamespace;
 import org.apache.axiom.om.OMNode;
+import org.apache.axiom.om.OMConstants;
 import org.apache.axiom.om.impl.serialize.StreamingOMSerializer;
 
 import javax.xml.namespace.NamespaceContext;
@@ -156,7 +157,7 @@ public class OMSerializerUtil {
      */
     public static boolean isSetPrefixBeforeStartElement(XMLStreamWriter writer) {
         NamespaceContext nc = writer.getNamespaceContext();
-        return (nc == null || nc.getClass().getName().indexOf("wstx") == -1);
+        return (nc == null || (nc.getClass().getName().indexOf("wstx") == -1 && nc.getClass().getName().indexOf("sun") == -1));
     }
 
     /**
@@ -215,11 +216,39 @@ public class OMSerializerUtil {
 
         // Write the startElement if required
         boolean setPrefixFirst = isSetPrefixBeforeStartElement(writer);
+        
         if (!setPrefixFirst) {
             if (eNamespace != null) {
                 if (ePrefix == null) {
+                    if (writer.getNamespaceContext().getNamespaceURI("") == null 
+                        ||  !writer.getNamespaceContext().getNamespaceURI("").equals(eNamespace)) {
+                        
+                        if (writePrefixList == null) {
+                            writePrefixList = new ArrayList();
+                            writeNSList = new ArrayList();
+                        }
+                        if (! writePrefixList.contains("")) {
+                            writePrefixList.add("");
+                            writeNSList.add(eNamespace);
+                        }
+                    }
                     writer.writeStartElement("", localName, eNamespace);
                 } else {
+                    /*
+                     * If XMLStreamWriter.writeStartElement(prefix,localName,namespaceURI) associates
+                     * the prefix with the namespace .. 
+                     */
+                    if (writer.getNamespaceContext().getNamespaceURI(ePrefix) == null) {
+                        if (writePrefixList == null) {
+                            writePrefixList = new ArrayList();
+                            writeNSList = new ArrayList();
+                        }
+                        if (! writePrefixList.contains(ePrefix)) {
+                            writePrefixList.add(ePrefix);
+                            writeNSList.add(eNamespace);
+                        }
+                    }
+                    
                     writer.writeStartElement(ePrefix, localName, eNamespace);
                 }
             } else {
@@ -241,7 +270,7 @@ public class OMSerializerUtil {
             namespace = (namespace != null && namespace.length() == 0) ? null : namespace;
 
 
-            String newPrefix = generateSetPrefix(prefix, namespace, writer, false);
+            String newPrefix = generateSetPrefix(prefix, namespace, writer, false, setPrefixFirst);
             // If this is a new association, remember it so that it can written out later
             if (newPrefix != null) {
                 if (writePrefixList == null) {
@@ -257,7 +286,7 @@ public class OMSerializerUtil {
 
         // Generate setPrefix for the element
         // Get the prefix and namespace of the element.  "" and null are identical.
-        String newPrefix = generateSetPrefix(ePrefix, eNamespace, writer, false);
+        String newPrefix = generateSetPrefix(ePrefix, eNamespace, writer, false, setPrefixFirst);
         // If this is a new association, remember it so that it can written out later
         if (newPrefix != null) {
             if (writePrefixList == null) {
@@ -292,7 +321,7 @@ public class OMSerializerUtil {
                 prefix = (writerPrefix != null) ?
                         writerPrefix : getNextNSPrefix();
             }
-            newPrefix = generateSetPrefix(prefix, namespace, writer, true);
+            newPrefix = generateSetPrefix(prefix, namespace, writer, true, setPrefixFirst);
             // If the prefix is not associated with a namespace yet, remember it so that we can
             // write out a namespace declaration
             if (newPrefix != null) {
@@ -374,11 +403,14 @@ public class OMSerializerUtil {
                 // prefix is empty then do not replace because attributes do not
                 // default to the default namespace like elements do.
                 String writerPrefix = writer.getPrefix(namespace);
-                if (!prefix.equals(writerPrefix) && !"".equals(writerPrefix)) {
+                if (!prefix.equals(writerPrefix) && writerPrefix  != null && !"".equals(writerPrefix)) {
                     prefix = writerPrefix;
                 }
             }
             if (namespace != null) {
+                if(prefix == null && OMConstants.XMLNS_URI.equals(namespace)){
+                    prefix = OMConstants.XMLNS_PREFIX;
+                }
                 // Qualified attribute
                 writer.writeAttribute(prefix, namespace,
                                       attr.getLocalName(),
@@ -518,7 +550,7 @@ public class OMSerializerUtil {
      * @return prefix name if a setPrefix/setDefaultNamespace is performed
      */
     public static String generateSetPrefix(String prefix, String namespace, XMLStreamWriter writer,
-                                           boolean attr) throws XMLStreamException {
+                                           boolean attr, boolean isSetPrefixFirst) throws XMLStreamException {
         // Generate setPrefix/setDefaultNamespace if the prefix is not associated.
         String newPrefix = null;
         if (namespace != null) {
@@ -540,6 +572,10 @@ public class OMSerializerUtil {
                 }
             } else {
                 // No Action needed..The writer already has associated this prefix to this namespace
+                if(isSetPrefixFirst){
+                    newPrefix = writer.getNamespaceContext().getPrefix(namespace);
+                    newPrefix = (newPrefix == null || newPrefix.length() == 0)  ? null : newPrefix ;
+                }
             }
         } else {
             // Unqualified Namespace

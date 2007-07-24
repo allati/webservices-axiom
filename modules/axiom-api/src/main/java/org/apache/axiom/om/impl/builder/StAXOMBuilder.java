@@ -73,12 +73,32 @@ public class StAXOMBuilder extends StAXBuilder {
      * @param factory
      * @param parser
      * @param element
+     * @param characterEncoding of existing element
      */
-    public StAXOMBuilder(OMFactory factory, XMLStreamReader parser, OMElement element) {
-        this(factory, parser);
+    public StAXOMBuilder(OMFactory factory, 
+                         XMLStreamReader parser, 
+                         OMElement element, 
+                         String characterEncoding) {
+        // Use this constructor because the parser is passed the START_DOCUMENT state.
+        super(factory, parser, characterEncoding);  
+        document = factory.createOMDocument(this);
+        if (charEncoding != null) {
+            document.setCharsetEncoding(charEncoding);
+        }
         lastNode = element;
         document.setOMDocumentElement(element);
         populateOMElement(element);
+    }
+    
+    /**
+     * Constructor linked to existing element.
+     *
+     * @param factory
+     * @param parser
+     * @param element
+     */
+    public StAXOMBuilder(OMFactory factory, XMLStreamReader parser, OMElement element) {
+        this(factory, parser, element, null);
     }
 
     /**
@@ -362,7 +382,7 @@ public class StAXOMBuilder extends StAXBuilder {
             if (nsprefix == null || "".equals(nsprefix)) {
                 node.declareDefaultNamespace(parser.getNamespaceURI(i));
             } else {
-                node.declareNamespace(namespaceURIFromParser, nsprefix);
+                node.declareNamespace(namespaceURIFromParser.intern(), nsprefix);
             }
         }
 
@@ -370,9 +390,9 @@ public class StAXOMBuilder extends StAXBuilder {
             OMNamespace namespace = node.findNamespace(namespaceURI, prefix);
             if (namespace == null || (!namespace.getPrefix().equals(prefix))) {
                 if (prefix == null || "".equals(prefix)) {
-                    namespace = node.declareDefaultNamespace(namespaceURI);
+                    namespace = node.declareDefaultNamespace(namespaceURI.intern());
                 } else {
-                    namespace = node.declareNamespace(namespaceURI, prefix);
+                    namespace = node.declareNamespace(namespaceURI.intern(), prefix);
                 }
             }
             node.setNamespaceWithNoFindInCurrentScope(namespace);

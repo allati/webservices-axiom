@@ -43,8 +43,11 @@ public abstract class SOAPBuilderHelper {
     protected void processNamespaceData(OMElement node, boolean checkSOAPNamespace) {
         int namespaceCount = parser.getNamespaceCount();
         for (int i = 0; i < namespaceCount; i++) {
-            node.declareNamespace(parser.getNamespaceURI(i),
-                                  parser.getNamespacePrefix(i));
+            String namespaceURI = parser.getNamespaceURI(i);
+            if (namespaceURI != null) {
+                node.declareNamespace(parser.getNamespaceURI(i),
+                            parser.getNamespacePrefix(i));
+            }
         }
 
         // set the own namespace
@@ -62,8 +65,6 @@ public abstract class SOAPBuilderHelper {
                 namespace = node.findNamespace(namespaceURI, prefix);
             }
             node.setNamespace(namespace);
-        } else {
-
         }
 
         // TODO we got to have this to make sure OM reject mesagess that are not name space qualified
