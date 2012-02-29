@@ -116,7 +116,7 @@ public abstract class AbstractXMLStreamWriter implements XMLStreamWriter {
     }
 
     public final void writeStartElement(String namespaceURI, String localName) throws XMLStreamException {
-        doWriteStartElement(internalGetPrefix(namespaceURI), namespaceURI, localName);
+        doWriteStartElement(internalGetPrefix(namespaceURI), localName, namespaceURI);
         namespaceContext.startScope();
         inEmptyElement = false;
     }
